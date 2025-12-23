@@ -3,15 +3,31 @@ import logo from '@/assets/logo.png';
 
 export function Watermark() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1] overflow-hidden">
-      <h1 
-        className="font-black text-black/20 dark:text-white/15 whitespace-nowrap transform -rotate-12 select-none tracking-tight leading-none"
-        style={{
-          fontSize: 'clamp(80px, 18vw, 280px)',
-        }}
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <svg
+        className="h-full w-full"
+        viewBox="0 0 1000 700"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden="true"
       >
-        Hindia Tech Labs
-      </h1>
+        <g transform="translate(500 350) rotate(-12)">
+          <text
+            x="0"
+            y="0"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{
+              fill: 'hsl(var(--foreground) / 0.22)',
+              fontSize: 200,
+              fontWeight: 900,
+              letterSpacing: '-0.04em',
+            }}
+          >
+            <tspan x="0" dy="-0.20em">Hindia</tspan>
+            <tspan x="0" dy="1.05em">Tech Labs</tspan>
+          </text>
+        </g>
+      </svg>
     </div>
   );
 }
