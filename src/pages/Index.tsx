@@ -8,6 +8,7 @@ import {
   BarChart3, FileText, Users, Shield, 
   School, Building2, Sparkles, Heart
 } from 'lucide-react';
+import { Watermark, Logo, MadeByBadge, FooterBranding } from '@/components/Branding';
 
 export default function Index() {
   const navigate = useNavigate();
@@ -44,12 +45,8 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden relative">
-      {/* Large Responsive Watermark */}
-      <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-        <h1 className="text-[8vw] sm:text-[10vw] md:text-[12vw] lg:text-[14vw] font-black text-foreground/[0.03] dark:text-foreground/[0.05] whitespace-nowrap transform -rotate-12 select-none">
-          Hindia Tech Labs
-        </h1>
-      </div>
+      {/* Dark Watermark */}
+      <Watermark />
 
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
@@ -62,9 +59,7 @@ export default function Index() {
       <header className="container mx-auto px-4 py-6 relative z-10">
         <nav className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
+            <Logo className="w-12 h-12 rounded-xl shadow-lg" />
             <div>
               <span className="text-xl font-bold text-white">Elite Result Portal</span>
               <p className="text-xs text-white/70">by Hindia Tech Labs</p>
@@ -94,14 +89,14 @@ export default function Index() {
       <section className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-white" />
+            <Sparkles className="w-4 h-4 text-yellow-300" />
             <span className="text-sm text-white font-medium">Advanced Academic Management</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-6 leading-tight animate-slide-up drop-shadow-lg">
             Elite Student
             <br />
-            <span className="bg-gradient-to-r from-white via-white/90 to-white bg-clip-text">
+            <span className="bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 bg-clip-text text-transparent">
               Result Portal
             </span>
           </h1>
@@ -132,9 +127,9 @@ export default function Index() {
 
           {/* Made by Hardik Jain badge */}
           <div className="mt-12 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20">
-              <Heart className="w-4 h-4 text-red-400" />
-              <span className="text-sm text-white/80">Made with love by <span className="font-bold text-white">Hardik Jain</span></span>
+            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white/15 backdrop-blur-sm border border-white/30 shadow-lg">
+              <Heart className="w-5 h-5 text-red-400 animate-pulse" />
+              <span className="text-base text-white/90">Made with love by <span className="font-bold text-white">Hardik Jain</span></span>
             </div>
           </div>
         </div>
@@ -222,9 +217,7 @@ export default function Index() {
         <div className="flex flex-col items-center gap-6">
           {/* Company Brand */}
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-xl">
-              <GraduationCap className="w-6 h-6 text-white" />
-            </div>
+            <Logo className="w-10 h-10 rounded-xl shadow-lg" />
             <div className="text-center">
               <span className="text-lg font-bold text-white">Hindia Tech Labs</span>
               <p className="text-xs text-white/60">Innovative Technology Solutions</p>
@@ -232,9 +225,9 @@ export default function Index() {
           </div>
 
           {/* Made by Hardik Jain */}
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20">
-            <Heart className="w-4 h-4 text-red-400 animate-pulse" />
-            <span className="text-sm text-white/80">Designed & Developed by <span className="font-bold text-white">Hardik Jain</span></span>
+          <div className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/15 border border-white/25 shadow-lg">
+            <Heart className="w-5 h-5 text-red-400 animate-pulse" />
+            <span className="text-sm text-white/90">Designed & Developed by <span className="font-bold text-white">Hardik Jain</span></span>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 w-full pt-4 border-t border-white/10">
