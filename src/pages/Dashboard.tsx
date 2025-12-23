@@ -517,12 +517,12 @@ export default function Dashboard() {
                         
                         <div className="space-y-2">
                           <Label>Department (Optional)</Label>
-                          <Select value={department} onValueChange={setDepartment}>
+                          <Select value={department || "none"} onValueChange={(val) => setDepartment(val === "none" ? "" : val)}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select department (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">None</SelectItem>
+                              <SelectItem value="none">None</SelectItem>
                               {departments.map(dept => (
                                 <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                               ))}
