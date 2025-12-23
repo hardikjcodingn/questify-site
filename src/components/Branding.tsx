@@ -4,7 +4,7 @@ import logo from '@/assets/logo.png';
 export function Watermark() {
   return (
     <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-      <h1 className="text-[12vw] sm:text-[14vw] md:text-[16vw] lg:text-[18vw] font-black text-foreground/10 dark:text-foreground/20 whitespace-nowrap transform -rotate-12 select-none tracking-wider">
+      <h1 className="text-[40vw] xs:text-[30vw] sm:text-[25vw] md:text-[20vw] lg:text-[18vw] xl:text-[16vw] font-black text-slate-900/[0.04] dark:text-white/[0.03] whitespace-nowrap transform -rotate-12 select-none tracking-tighter leading-none">
         Hindia Tech Labs
       </h1>
     </div>
@@ -13,7 +13,7 @@ export function Watermark() {
 
 export function Logo({ className = "w-10 h-10" }: { className?: string }) {
   return (
-    <img src={logo} alt="Hindia Tech Labs" className={className} />
+    <img src={logo} alt="Elite Result Portal" className={`${className} object-contain`} />
   );
 }
 
@@ -30,10 +30,10 @@ export function MadeByBadge({ className = "" }: { className?: string }) {
 
 export function FooterBranding() {
   return (
-    <footer className="w-full py-6 px-4 border-t border-border bg-background/50 backdrop-blur-sm">
+    <footer className="w-full py-6 px-4 border-t border-border bg-background/80 backdrop-blur-sm relative z-10">
       <div className="container mx-auto flex flex-col items-center gap-4">
         <div className="flex items-center gap-3">
-          <Logo className="w-8 h-8 rounded-lg" />
+          <Logo className="w-10 h-10 rounded-lg" />
           <div className="text-center">
             <span className="text-lg font-bold text-foreground">Hindia Tech Labs</span>
             <p className="text-xs text-muted-foreground">Innovative Technology Solutions</p>
