@@ -23,6 +23,7 @@ import ResultViewDialog from '@/components/dashboard/ResultViewDialog';
 import BulkImportDialog from '@/components/dashboard/BulkImportDialog';
 import CompareResultsDialog from '@/components/dashboard/CompareResultsDialog';
 import { exportToPDF, exportAllToCSV } from '@/utils/exportUtils';
+import { Watermark, Logo, FooterBranding } from '@/components/Branding';
 
 interface Subject {
   id: string;
@@ -277,15 +278,16 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Dark Watermark */}
+      <Watermark />
+      
       {/* Header */}
       <header className="gradient-hero sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-foreground/20 rounded-xl backdrop-blur-sm">
-                <GraduationCap className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <Logo className="w-10 h-10 rounded-xl shadow-lg" />
               <div>
                 <h1 className="text-xl font-bold text-primary-foreground">Elite Result Portal</h1>
                 <p className="text-sm text-primary-foreground/70">
@@ -733,6 +735,9 @@ export default function Dashboard() {
         onOpenChange={setIsCompareOpen}
         results={results}
       />
+      
+      {/* Footer Branding */}
+      <FooterBranding />
     </div>
   );
 }

@@ -18,6 +18,7 @@ import {
   Search, Eye, Trash2, UserCog, Database, 
   TrendingUp, Award, BarChart3, Plus, Edit, BookOpen
 } from 'lucide-react';
+import { Watermark, Logo, FooterBranding } from '@/components/Branding';
 
 interface Profile {
   id: string;
@@ -306,7 +307,10 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      {/* Dark Watermark */}
+      <Watermark />
+      
       {/* Header */}
       <header className="gradient-hero sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -320,9 +324,7 @@ export default function Admin() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div className="p-2 bg-primary-foreground/20 rounded-xl backdrop-blur-sm">
-                <Shield className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <Logo className="w-10 h-10 rounded-xl shadow-lg" />
               <div>
                 <h1 className="text-xl font-bold text-primary-foreground">Admin Panel</h1>
                 <p className="text-sm text-primary-foreground/70">Manage users, results & settings</p>
@@ -792,6 +794,9 @@ export default function Admin() {
           </DialogContent>
         </Dialog>
       </main>
+      
+      {/* Footer Branding */}
+      <FooterBranding />
     </div>
   );
 }

@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { GraduationCap, Mail, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { GraduationCap, Mail, Lock, User, ArrowRight, Sparkles, Heart } from 'lucide-react';
 import { z } from 'zod';
+import { Watermark, Logo, MadeByBadge } from '@/components/Branding';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
@@ -99,7 +100,10 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gradient-hero p-4 relative">
+      {/* Dark Watermark */}
+      <Watermark />
+      
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary-foreground/10 rounded-full blur-3xl animate-float"></div>
@@ -109,11 +113,9 @@ export default function Auth() {
       <div className="w-full max-w-md relative z-10">
         {/* Logo and Title */}
         <div className="text-center mb-8 animate-slide-up">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-foreground/20 backdrop-blur-xl mb-4">
-            <GraduationCap className="w-8 h-8 text-primary-foreground" />
-          </div>
+          <Logo className="w-20 h-20 rounded-2xl mx-auto mb-4 shadow-xl" />
           <h1 className="text-3xl font-bold text-primary-foreground mb-2">Elite Result Portal</h1>
-          <p className="text-primary-foreground/80">Advanced Academic Management System</p>
+          <p className="text-primary-foreground/80">by Hindia Tech Labs</p>
         </div>
 
         <Card className="glass border-primary-foreground/20 animate-scale-in">
@@ -249,9 +251,12 @@ export default function Auth() {
           </CardContent>
         </Card>
         
-        <p className="text-center text-primary-foreground/60 text-sm mt-6">
-          By signing up, you agree to our Terms of Service
-        </p>
+        <div className="text-center mt-6 space-y-4">
+          <MadeByBadge className="bg-white/10 border-white/20" />
+          <p className="text-primary-foreground/60 text-sm">
+            By signing up, you agree to our Terms of Service
+          </p>
+        </div>
       </div>
     </div>
   );
