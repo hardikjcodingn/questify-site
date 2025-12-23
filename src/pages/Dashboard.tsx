@@ -12,12 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { 
-  GraduationCap, LogOut, User, Plus, FileText, TrendingUp, 
-  Award, BookOpen, School, Building2, Settings, Shield,
-  Eye, Edit, Trash2, Download, BarChart3, Users
+  GraduationCap, LogOut, Plus, FileText, TrendingUp, 
+  Award, BookOpen, School, Building2, Shield,
+  Eye, Trash2, Download, BarChart3, FileSpreadsheet, PlusCircle, X
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import PerformanceCharts from '@/components/dashboard/PerformanceCharts';
+import ResultViewDialog from '@/components/dashboard/ResultViewDialog';
+import { exportToPDF, exportAllToCSV } from '@/utils/exportUtils';
 
 interface Subject {
   id: string;
@@ -66,16 +69,23 @@ export default function Dashboard() {
   const [institutionType, setInstitutionType] = useState<'school' | 'college'>('school');
   const [isCreating, setIsCreating] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [viewingResult, setViewingResult] = useState<StudentResult | null>(null);
+  const [activeTab, setActiveTab] = useState('results');
   
-  // Form state
+  // Form state - dynamic subjects
   const [studentName, setStudentName] = useState('');
   const [rollNumber, setRollNumber] = useState('');
   const [className, setClassName] = useState('');
   const [academicYear, setAcademicYear] = useState('');
   const [department, setDepartment] = useState('');
   const [semester, setSemester] = useState('');
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(['', '', '', '', '']);
-  const [marks, setMarks] = useState<string[]>(['', '', '', '', '']);
+  const [subjectEntries, setSubjectEntries] = useState<{ subject: string; marks: string }[]>([
+    { subject: '', marks: '' },
+    { subject: '', marks: '' },
+    { subject: '', marks: '' },
+    { subject: '', marks: '' },
+    { subject: '', marks: '' }
+  ]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -123,17 +133,45 @@ export default function Dashboard() {
     }
   };
 
+  const addSubjectEntry = () => {
+    if (subjectEntries.length >= 10) {
+      toast.error('Maximum 10 subjects allowed');
+      return;
+    }
+    setSubjectEntries([...subjectEntries, { subject: '', marks: '' }]);
+  };
+
+  const removeSubjectEntry = (index: number) => {
+    if (subjectEntries.length <= 1) {
+      toast.error('At least one subject is required');
+      return;
+    }
+    setSubjectEntries(subjectEntries.filter((_, i) => i !== index));
+  };
+
+  const updateSubjectEntry = (index: number, field: 'subject' | 'marks', value: string) => {
+    const updated = [...subjectEntries];
+    updated[index][field] = value;
+    setSubjectEntries(updated);
+  };
+
   const handleCreateResult = async () => {
-    if (!studentName || !rollNumber || !className || !academicYear || !department || !semester) {
+    if (!studentName || !rollNumber || !className || !academicYear || !semester) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    const validSubjects = selectedSubjects.filter(s => s !== '');
-    const validMarks = marks.slice(0, validSubjects.length).map(m => parseInt(m) || 0);
+    const validEntries = subjectEntries.filter(e => e.subject !== '' && e.marks !== '');
+    const validSubjects = validEntries.map(e => e.subject);
+    const validMarks = validEntries.map(e => parseInt(e.marks) || 0);
 
-    if (validSubjects.length < 5 || validMarks.some(m => isNaN(m) || m < 0 || m > 100)) {
-      toast.error('Please select 5 subjects and enter valid marks (0-100)');
+    if (validSubjects.length < 1) {
+      toast.error('Please add at least one subject with marks');
+      return;
+    }
+
+    if (validMarks.some(m => isNaN(m) || m < 0 || m > 100)) {
+      toast.error('Please enter valid marks (0-100) for all subjects');
       return;
     }
 
@@ -149,7 +187,7 @@ export default function Dashboard() {
       roll_number: rollNumber,
       class_name: className,
       academic_year: academicYear,
-      department,
+      department: department || '',
       semester,
       institution_type: institutionType,
       subjects: validSubjects,
@@ -179,8 +217,13 @@ export default function Dashboard() {
     setAcademicYear('');
     setDepartment('');
     setSemester('');
-    setSelectedSubjects(['', '', '', '', '']);
-    setMarks(['', '', '', '', '']);
+    setSubjectEntries([
+      { subject: '', marks: '' },
+      { subject: '', marks: '' },
+      { subject: '', marks: '' },
+      { subject: '', marks: '' },
+      { subject: '', marks: '' }
+    ]);
   };
 
   const handleDeleteResult = async (id: string) => {
@@ -199,6 +242,15 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await signOut();
     navigate('/');
+  };
+
+  const handleExportAllCSV = () => {
+    if (results.length === 0) {
+      toast.error('No results to export');
+      return;
+    }
+    exportAllToCSV(results, 'all_student_results');
+    toast.success('CSV exported successfully!');
   };
 
   const stats = {
@@ -351,231 +403,301 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Create Result Section */}
-        <Card className="mb-8 animate-slide-up" style={{ animationDelay: '0.4s' }}>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-primary" />
-                Student Results
-              </CardTitle>
-              <CardDescription>
-                Manage and generate student result cards for {institutionType === 'school' ? 'School' : 'College'}
-              </CardDescription>
-            </div>
-            
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="hero" size="lg">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Generate Result
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-primary" />
-                    Generate New Result
-                  </DialogTitle>
-                </DialogHeader>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="studentName">Student Name</Label>
-                    <Input
-                      id="studentName"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      placeholder="Enter student name"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="rollNumber">Roll Number</Label>
-                    <Input
-                      id="rollNumber"
-                      value={rollNumber}
-                      onChange={(e) => setRollNumber(e.target.value)}
-                      placeholder="Enter roll number"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="className">Class/Grade</Label>
-                    <Input
-                      id="className"
-                      value={className}
-                      onChange={(e) => setClassName(e.target.value)}
-                      placeholder="e.g., 10A or B.Tech 2nd Year"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="academicYear">Academic Year</Label>
-                    <Input
-                      id="academicYear"
-                      value={academicYear}
-                      onChange={(e) => setAcademicYear(e.target.value)}
-                      placeholder="e.g., 2024-25"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Select value={department} onValueChange={setDepartment}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="semester">Semester/Term</Label>
-                    <Input
-                      id="semester"
-                      value={semester}
-                      onChange={(e) => setSemester(e.target.value)}
-                      placeholder="e.g., Semester 1"
-                    />
-                  </div>
+        {/* Tabs for Results and Analytics */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="results" className="flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Results
+            </TabsTrigger>
+            <TabsTrigger value="analytics" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="results">
+            {/* Create Result Section */}
+            <Card className="animate-slide-up">
+              <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <BookOpen className="w-5 h-5 text-primary" />
+                    Student Results
+                  </CardTitle>
+                  <CardDescription>
+                    Manage and generate student result cards for {institutionType === 'school' ? 'School' : 'College'}
+                  </CardDescription>
                 </div>
                 
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-4">Subject Marks (out of 100)</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[0, 1, 2, 3, 4].map((index) => (
-                      <div key={index} className="flex gap-2">
-                        <div className="flex-1">
-                          <Select 
-                            value={selectedSubjects[index]} 
-                            onValueChange={(value) => {
-                              const updated = [...selectedSubjects];
-                              updated[index] = value;
-                              setSelectedSubjects(updated);
-                            }}
-                          >
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={handleExportAllCSV}
+                    disabled={results.length === 0}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 mr-2" />
+                    Export All CSV
+                  </Button>
+                  
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="hero" size="lg">
+                        <Plus className="w-5 h-5 mr-2" />
+                        Generate Result
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                          <GraduationCap className="w-5 h-5 text-primary" />
+                          Generate New Result
+                        </DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="studentName">Student Name *</Label>
+                          <Input
+                            id="studentName"
+                            value={studentName}
+                            onChange={(e) => setStudentName(e.target.value)}
+                            placeholder="Enter student name"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="rollNumber">Roll Number *</Label>
+                          <Input
+                            id="rollNumber"
+                            value={rollNumber}
+                            onChange={(e) => setRollNumber(e.target.value)}
+                            placeholder="Enter roll number"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="className">Class/Grade *</Label>
+                          <Input
+                            id="className"
+                            value={className}
+                            onChange={(e) => setClassName(e.target.value)}
+                            placeholder="e.g., 10A or B.Tech 2nd Year"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="academicYear">Academic Year *</Label>
+                          <Input
+                            id="academicYear"
+                            value={academicYear}
+                            onChange={(e) => setAcademicYear(e.target.value)}
+                            placeholder="e.g., 2024-25"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>Department (Optional)</Label>
+                          <Select value={department} onValueChange={setDepartment}>
                             <SelectTrigger>
-                              <SelectValue placeholder={`Subject ${index + 1}`} />
+                              <SelectValue placeholder="Select department (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                              {subjects.map(subject => (
-                                <SelectItem key={subject.id} value={subject.name}>
-                                  {subject.name}
-                                </SelectItem>
+                              <SelectItem value="">None</SelectItem>
+                              {departments.map(dept => (
+                                <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </div>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          className="w-24"
-                          placeholder="Marks"
-                          value={marks[index]}
-                          onChange={(e) => {
-                            const updated = [...marks];
-                            updated[index] = e.target.value;
-                            setMarks(updated);
-                          }}
-                        />
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="semester">Semester/Term *</Label>
+                          <Input
+                            id="semester"
+                            value={semester}
+                            onChange={(e) => setSemester(e.target.value)}
+                            placeholder="e.g., Semester 1"
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <DialogFooter className="mt-6">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleCreateResult} disabled={isCreating}>
-                    {isCreating ? 'Creating...' : 'Generate Result'}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardHeader>
-          
-          <CardContent>
-            {results.length === 0 ? (
-              <div className="text-center py-12">
-                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">No results yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  Click "Generate Result" to create your first student result card.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Student</TableHead>
-                      <TableHead>Roll No</TableHead>
-                      <TableHead>Class</TableHead>
-                      <TableHead>Department</TableHead>
-                      <TableHead>Percentage</TableHead>
-                      <TableHead>Grade</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {results.map((result) => {
-                      const gradeInfo = calculateGrade(result.percentage);
-                      return (
-                        <TableRow key={result.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">{result.student_name}</TableCell>
-                          <TableCell>{result.roll_number}</TableCell>
-                          <TableCell>{result.class_name}</TableCell>
-                          <TableCell>{result.department}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress 
-                                value={result.percentage} 
-                                className="w-16 h-2"
+                      
+                      <div className="border-t pt-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold">Subject Marks (out of 100)</h4>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            size="sm"
+                            onClick={addSubjectEntry}
+                            disabled={subjectEntries.length >= 10}
+                          >
+                            <PlusCircle className="w-4 h-4 mr-2" />
+                            Add Subject
+                          </Button>
+                        </div>
+                        <div className="space-y-3">
+                          {subjectEntries.map((entry, index) => (
+                            <div key={index} className="flex gap-2 items-center">
+                              <div className="flex-1">
+                                <Select 
+                                  value={entry.subject} 
+                                  onValueChange={(value) => updateSubjectEntry(index, 'subject', value)}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder={`Subject ${index + 1}`} />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {subjects.map(subject => (
+                                      <SelectItem key={subject.id} value={subject.name}>
+                                        {subject.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                className="w-24"
+                                placeholder="Marks"
+                                value={entry.marks}
+                                onChange={(e) => updateSubjectEntry(index, 'marks', e.target.value)}
                               />
-                              <span className="text-sm font-medium">{result.percentage}%</span>
+                              {subjectEntries.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-9 w-9 text-destructive hover:text-destructive"
+                                  onClick={() => removeSubjectEntry(index)}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={gradeInfo.color} variant="outline">
-                              {result.grade}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-sm text-muted-foreground">
-                            {new Date(result.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-1">
-                              <Button size="icon" variant="ghost" className="h-8 w-8">
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                size="icon" 
-                                variant="ghost" 
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={() => handleDeleteResult(result.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                          ))}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          You can add up to 10 subjects. At least 1 subject is required.
+                        </p>
+                      </div>
+                      
+                      <DialogFooter className="mt-6">
+                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                          Cancel
+                        </Button>
+                        <Button onClick={handleCreateResult} disabled={isCreating}>
+                          {isCreating ? 'Creating...' : 'Generate Result'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {results.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-muted-foreground mb-2">No results yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Click "Generate Result" to create your first student result card.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Student</TableHead>
+                          <TableHead>Roll No</TableHead>
+                          <TableHead>Class</TableHead>
+                          <TableHead>Department</TableHead>
+                          <TableHead>Percentage</TableHead>
+                          <TableHead>Grade</TableHead>
+                          <TableHead>Date</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                      </TableHeader>
+                      <TableBody>
+                        {results.map((result) => {
+                          const gradeInfo = calculateGrade(result.percentage);
+                          return (
+                            <TableRow key={result.id} className="hover:bg-muted/50">
+                              <TableCell className="font-medium">{result.student_name}</TableCell>
+                              <TableCell>{result.roll_number}</TableCell>
+                              <TableCell>{result.class_name}</TableCell>
+                              <TableCell>{result.department || 'N/A'}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress 
+                                    value={result.percentage} 
+                                    className="w-16 h-2"
+                                  />
+                                  <span className="text-sm font-medium">{result.percentage}%</span>
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge className={gradeInfo.color} variant="outline">
+                                  {result.grade}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {new Date(result.created_at).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex justify-end gap-1">
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-8 w-8"
+                                    onClick={() => setViewingResult(result)}
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-8 w-8"
+                                    onClick={() => exportToPDF(result)}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-8 w-8 text-destructive hover:text-destructive"
+                                    onClick={() => handleDeleteResult(result.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <PerformanceCharts results={results} />
+          </TabsContent>
+        </Tabs>
       </main>
+
+      {/* Result View Dialog */}
+      <ResultViewDialog 
+        result={viewingResult} 
+        open={!!viewingResult} 
+        onOpenChange={(open) => !open && setViewingResult(null)} 
+      />
     </div>
   );
 }
