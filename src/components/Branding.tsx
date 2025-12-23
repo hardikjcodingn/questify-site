@@ -3,8 +3,13 @@ import logo from '@/assets/logo.png';
 
 export function Watermark() {
   return (
-    <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-      <h1 className="text-[40vw] xs:text-[30vw] sm:text-[25vw] md:text-[20vw] lg:text-[18vw] xl:text-[16vw] font-black text-slate-900/[0.04] dark:text-white/[0.03] whitespace-nowrap transform -rotate-12 select-none tracking-tighter leading-none">
+    <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1] overflow-hidden">
+      <h1 
+        className="font-black text-black/20 dark:text-white/15 whitespace-nowrap transform -rotate-12 select-none tracking-tight leading-none"
+        style={{
+          fontSize: 'clamp(80px, 18vw, 280px)',
+        }}
+      >
         Hindia Tech Labs
       </h1>
     </div>
