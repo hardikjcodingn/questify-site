@@ -14,12 +14,14 @@ import { toast } from 'sonner';
 import { 
   GraduationCap, LogOut, Plus, FileText, TrendingUp, 
   Award, BookOpen, School, Building2, Shield,
-  Eye, Trash2, Download, BarChart3, FileSpreadsheet, PlusCircle, X
+  Eye, Trash2, Download, BarChart3, FileSpreadsheet, PlusCircle, X, Upload, GitCompare
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import PerformanceCharts from '@/components/dashboard/PerformanceCharts';
 import ResultViewDialog from '@/components/dashboard/ResultViewDialog';
+import BulkImportDialog from '@/components/dashboard/BulkImportDialog';
+import CompareResultsDialog from '@/components/dashboard/CompareResultsDialog';
 import { exportToPDF, exportAllToCSV } from '@/utils/exportUtils';
 
 interface Subject {
@@ -71,6 +73,8 @@ export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewingResult, setViewingResult] = useState<StudentResult | null>(null);
   const [activeTab, setActiveTab] = useState('results');
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [isCompareOpen, setIsCompareOpen] = useState(false);
   
   // Form state - dynamic subjects
   const [studentName, setStudentName] = useState('');
@@ -430,7 +434,22 @@ export default function Dashboard() {
                   </CardDescription>
                 </div>
                 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsBulkImportOpen(true)}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Bulk Import
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsCompareOpen(true)}
+                    disabled={results.length < 2}
+                  >
+                    <GitCompare className="w-4 h-4 mr-2" />
+                    Compare
+                  </Button>
                   <Button 
                     variant="outline" 
                     onClick={handleExportAllCSV}
@@ -697,6 +716,22 @@ export default function Dashboard() {
         result={viewingResult} 
         open={!!viewingResult} 
         onOpenChange={(open) => !open && setViewingResult(null)} 
+      />
+      
+      {/* Bulk Import Dialog */}
+      <BulkImportDialog
+        open={isBulkImportOpen}
+        onOpenChange={setIsBulkImportOpen}
+        institutionType={institutionType}
+        userId={user?.id || ''}
+        onImportComplete={fetchResults}
+      />
+      
+      {/* Compare Results Dialog */}
+      <CompareResultsDialog
+        open={isCompareOpen}
+        onOpenChange={setIsCompareOpen}
+        results={results}
       />
     </div>
   );
